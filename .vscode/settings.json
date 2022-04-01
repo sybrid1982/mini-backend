@@ -1,0 +1,5 @@
+{
+    "appService.preDeployTask": "publish",
+    "appService.deploySubpath": "bin/Release/net6.0/publish",
+    "appService.defaultWebAppToDeploy": "/subscriptions/acd57f71-39fa-40b0-afde-92a8b88dc366/resourceGroups/mini-paint-log_group/providers/Microsoft.Web/sites/mini-photo-backend"
+}
