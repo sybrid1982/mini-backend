@@ -139,7 +139,7 @@ namespace MiniBackend.Repositories
             try {
                 var minis = await context.Minis
                     .AsNoTracking()
-                    .OrderBy(mini => mini.CompletionDate)
+                    .OrderByDescending(mini => mini.CompletionDate)
                     .Include(m => m.Game)
                     .Include(m => m.Photos)
                     .PaginateAsync(page, limit, cancellationToken);
