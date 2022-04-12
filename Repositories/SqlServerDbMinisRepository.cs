@@ -13,18 +13,19 @@ namespace MiniBackend.Repositories
 
         // Minis
         public Mini GetMini(int id) {
-            return context.Minis.Where(mini => mini.MiniId == id)
+            return context.Minis.AsNoTracking()
+                .Where(mini => mini.MiniId == id)
                 .Include(m => m.Game)
                 .Include(m => m.Photos)
                 .SingleOrDefault();
         }
         public IEnumerable<Mini> GetMinis() {
-            return context.Minis.Include(m => m.Game).Include(m => m.Photos);
+            return context.Minis.AsNoTracking().Include(m => m.Game).Include(m => m.Photos);
         }
 
         public IEnumerable<Mini> GetMinisByGame(int gameId)
         {
-            var minis = context.Minis.Where(mini => mini.Game.GameId == gameId).Include(m => m.Game).Include(m => m.Photos);
+            var minis = context.Minis.AsNoTracking().Where(mini => mini.Game.GameId == gameId).Include(m => m.Game).Include(m => m.Photos);
             return minis;
         }
 
@@ -44,12 +45,12 @@ namespace MiniBackend.Repositories
 
         // Games
         public IEnumerable<Game> GetGames() {
-            return context.Games.Include(g => g.MiniMeta);
+            return context.Games.AsNoTracking().Include(g => g.MiniMeta);
         }
 
         public Game GetGame(int id)
         {
-            return context.Games.Where(game => game.GameId == id).Include(g => g.MiniMeta).SingleOrDefault();
+            return context.Games.AsNoTracking().Where(game => game.GameId == id).Include(g => g.MiniMeta).SingleOrDefault();
         }
 
         public void CreateGame(Game game)
@@ -80,12 +81,12 @@ namespace MiniBackend.Repositories
         // Photos
         public IEnumerable<Photo> GetPhotosForMini(int id)
         {
-            return context.Photos.Where(photo => photo.Mini.MiniId == id).Include(p => p.Mini);
+            return context.Photos.AsNoTracking().Where(photo => photo.Mini.MiniId == id).Include(p => p.Mini);
         }
 
         public Photo GetPhoto(int id)
         {
-            return context.Photos.Where(photo => photo.PhotoId == id).SingleOrDefault();
+            return context.Photos.AsNoTracking().Where(photo => photo.PhotoId == id).SingleOrDefault();
         }
 
         public void CreatePhoto(Photo photo)
