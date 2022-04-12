@@ -66,7 +66,7 @@ namespace Pagination {
             paged.CurrentPage = page;
             paged.PageSize = limit;
 
-            var totalItemsCountTask = query.CountAsync(cancellationToken);
+            var totalItemsCountTask = await query.CountAsync(cancellationToken);
 
             var startRow = (page - 1) * limit;
             paged.Items = await query
@@ -74,7 +74,7 @@ namespace Pagination {
                     .Take(limit)
                     .ToListAsync(cancellationToken);
 
-            paged.TotalItems = await totalItemsCountTask;
+            paged.TotalItems = totalItemsCountTask;
             paged.TotalPages = (int)Math.Ceiling(paged.TotalItems / (double)limit);
 
             return paged;

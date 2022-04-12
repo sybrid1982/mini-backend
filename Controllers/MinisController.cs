@@ -38,14 +38,17 @@ namespace MiniBackend.Controllers
             {
                 return BadRequest();
             }
+            try {
+                var minis = await repository.GetMinisByPageAsync(
+                    parameters.Limit,
+                    parameters.Page,
+                    cancellationToken
+                );
 
-            var minis = await repository.GetMinisByPageAsync(
-                parameters.Limit,
-                parameters.Page,
-                cancellationToken
-            );
-
-            return Ok(minis);
+                return Ok(minis);
+            } catch (Exception ex) {
+                return BadRequest(ex);
+            }
         }
 
         // GET minis/{id}
