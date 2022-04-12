@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using MiniBackend.DTOs;
 using MiniBackend.Models;
+using Pagination;
+using Pagination.Dtos;
 
 namespace MiniBackend.Repositories
 {
@@ -129,6 +132,21 @@ namespace MiniBackend.Repositories
         public void CreateMeta(MiniMeta meta) {
             context.MiniMeta.Add(meta);
             context.SaveChanges();
+        }
+
+        public async Task<GetMinisPaginatedDto> GetMinisByPageAsync(int limit, int page, CancellationToken cancellationToken)
+        {
+            var minis = await context.Minis
+                .AsNoTracking()
+                .OrderBy(mini => mini.CompletionDate)
+                .PaginateAsync(page, limit, cancellationToken);
+
+            return new GetMinisPaginatedDto {
+                CurrentPage = minis.CurrentPage,
+                TotalPages = minis.TotalPages,
+                TotalItems = minis.TotalItems,
+                Minis = minis.Items.Select(mini => mini.AsDto()).ToList()
+            };
         }
     }
 }

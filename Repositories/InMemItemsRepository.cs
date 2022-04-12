@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using MiniBackend.Models;
+using Pagination.Dtos;
 
 namespace MiniBackend.Repositories
 {
@@ -142,6 +143,11 @@ namespace MiniBackend.Repositories
         }
 
         public void CreateMeta(MiniMeta meta)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<GetMinisPaginatedDto> GetMinisByPageAsync(int limit, int page, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

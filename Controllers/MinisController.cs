@@ -4,7 +4,6 @@ using MiniBackend.Models;
 using MiniBackend.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using UploadFilesServer.Services;
-using System.Net.Http.Headers;
 
 namespace MiniBackend.Controllers
 {
@@ -14,19 +13,39 @@ namespace MiniBackend.Controllers
     {
         private readonly IMinisRepository repository;
         private readonly IUploadService uploadService;
+        public record UrlQueryParameters(int Limit = 50, int Page = 1);
 
         public MinisController(IMinisRepository repository, IUploadService uploadService) {
             this.repository = repository;
             this.uploadService = uploadService ?? throw new ArgumentNullException(nameof(uploadService));
         }
 
-        // TODO: #5 #2 #3 Set up the GET mini calls to return at least one image url
         [HttpGet]
         public IEnumerable<MiniDTO> GetMinis()
         {
             var minis = repository.GetMinis().Select( mini => mini.AsDto());
             // If we are fetching all minis, then we only need one photo for each
             return minis;
+        }
+
+        [HttpGet("paginated")]
+        public async Task<IActionResult> GetMinisListAsync(
+            [FromQuery] UrlQueryParameters parameters,
+            CancellationToken cancellationToken
+        )
+        {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
+            var minis = await repository.GetMinisByPageAsync(
+                parameters.Limit,
+                parameters.Page,
+                cancellationToken
+            );
+
+            return Ok(minis);
         }
 
         // GET minis/{id}
