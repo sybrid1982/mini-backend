@@ -1,112 +1,149 @@
-// using System.Collections.Generic;
-// using System.Linq;
-// using MiniBackend.Models;
+using System.Collections.Generic;
+using System.Linq;
+using MiniBackend.Models;
 
-// namespace MiniBackend.Repositories
-// {
-//     public class InMemMinisRepository : IMinisRepository
-//     { 
-//         private readonly List<Mini> minis = new()
-//         {
-//             new Mini { mini_id = 1245, completion_date = DateTime.UtcNow, mini_name = "Hulk", sculptor = "Big Child Creatives", game_id = 1 },
-//             new Mini { mini_id = 1249, completion_date = DateTime.UtcNow, mini_name = "Wolverine", sculptor = "Big Child Creatives", game_id = 2 },
-//             new Mini { mini_id = 2542, completion_date = DateTime.UtcNow, mini_name = "Alguacile w/Rocket Launcher", sculptor = "Corvus Belli", game_id = 3 },
-//             new Mini { mini_id = 7659, completion_date = DateTime.UtcNow, mini_name = "Gorm", sculptor = "Kingdom Death", game_id = 4 }
-//         };
+namespace MiniBackend.Repositories
+{
+    public class InMemMinisRepository : IMinisRepository
+    {
+        public InMemMinisRepository() {
+            this.games = SetupGames();
+            this.minis = SetupMinis(games);
+        }
+        private readonly List<Game> games;
 
-//         private readonly List<Game> games = new()
-//         {
-//             new Game { game_id = 1, year_published = "2020", game_name = "Marvel United", box_art = "", meta_id = 2},
-//             new Game { game_id = 2, year_published = "2022", game_name = "Marvel United X-Men", box_art = "", meta_id = 2},
-//             new Game { game_id = 3, year_published = "2021", game_name = "Infinity N4", box_art = "", meta_id = 3},
-//             new Game { game_id = 4, year_published = "2015", game_name = "Kingdom Death", box_art = "", meta_id = 4}
-//         };
+        private readonly List<Mini> minis;
+        
+        private List<Mini> SetupMinis(List<Game> games)
+        { 
+            return new()
+            {
+                SetupMiniWithGame(new Mini { MiniId = 1245, CompletionDate = DateTime.UtcNow, MiniName = "Hulk", Sculptor = "Big Child Creatives"}, games[0]),
+                SetupMiniWithGame(new Mini { MiniId = 1249, CompletionDate = DateTime.UtcNow, MiniName = "Wolverine", Sculptor = "Big Child Creatives"}, games[1]),
+                SetupMiniWithGame(new Mini { MiniId = 2542, CompletionDate = DateTime.UtcNow, MiniName = "Alguacile w/Rocket Launcher", Sculptor = "Corvus Belli"}, games[2]),
+                SetupMiniWithGame(new Mini { MiniId = 7659, CompletionDate = DateTime.UtcNow, MiniName = "Gorm", Sculptor = "Kingdom Death"}, games[3]),
+            };
+        }
 
-//         private readonly List<Photo> photos = new()
-//         {
-//             new Photo { photo_id = 1, filename = "fakePic1", mini_id = 1245}
-//         };
+        private Mini SetupMiniWithGame(Mini mini, Game game) {
+            return new Mini { MiniId = mini.MiniId, CompletionDate = mini.CompletionDate, MiniName = mini.MiniName, Sculptor = mini.Sculptor, Game = game};
+        }
 
-//         public IEnumerable<Mini> GetMinis()
-//         {
-//             return minis;
-//         }
+        private readonly List<Photo> photos = new()
+        {
+            new Photo { PhotoId = 1, Filename = "fakePic1"}
+        };
 
-//         public Mini GetMini(int id)
-//         {
-//             return minis.Where(mini => mini.mini_id == id).SingleOrDefault();
-//         }
+        private List<Game> SetupGames() {
+            return new()
+            {
+                new Game { GameId = 1, YearPublished = "2020", GameName = "Marvel United", BoxArtUrl = ""},
+                new Game { GameId = 2, YearPublished = "2022", GameName = "Marvel United X-Men", BoxArtUrl = ""},
+                new Game { GameId = 3, YearPublished = "2021", GameName = "Infinity N4", BoxArtUrl = ""},
+                new Game { GameId = 4, YearPublished = "2015", GameName = "Kingdom Death", BoxArtUrl = ""}
+            };
+        }
 
-//         public IEnumerable<Mini> GetMinisByGame(int id)
-//         {
-//             return minis.Where(mini => mini.game_id == id);
-//         }
+        public IEnumerable<Mini> GetMinis()
+        {
+            return minis;
+        }
 
-//         public void CreateMini(Mini mini)
-//         {
-//             minis.Add(mini);
-//         }
+        public Mini GetMini(int id)
+        {
+            return minis.Where(mini => mini.MiniId == id).SingleOrDefault();
+        }
 
-//         public void UpdateMini(Mini mini)
-//         {
-//             var index = minis.FindIndex(existingMini => existingMini.mini_id == mini.mini_id);
-//             minis[index] = mini;
-//         }
+        public IEnumerable<Mini> GetMinisByGame(int id)
+        {
+            return minis.Where(mini => mini.Game.GameId == id);
+        }
 
-//         public void DeleteMini(int id)
-//         {
-//             var index = minis.FindIndex(existingMini => existingMini.mini_id == id);
-//             minis.RemoveAt(index);
-//         }
+        public void CreateMini(Mini mini)
+        {
+            minis.Add(mini);
+        }
 
-//         public IEnumerable<Game> GetGames()
-//         {
-//             return games;
-//         }
+        public void UpdateMini(Mini mini)
+        {
+            var index = minis.FindIndex(existingMini => existingMini.MiniId == mini.MiniId);
+            minis[index] = mini;
+        }
 
-//         public Game GetGame(int id)
-//         {
-//             return games.Where(game => game.game_id == id).SingleOrDefault();
-//         }
+        public void DeleteMini(int id)
+        {
+            var index = minis.FindIndex(existingMini => existingMini.MiniId == id);
+            minis.RemoveAt(index);
+        }
 
-//         public void CreateGame(Game game)
-//         {
-//             games.Add(game);
-//         }
+        public IEnumerable<Game> GetGames()
+        {
+            return games;
+        }
 
-//         public void UpdateGame(Game game)
-//         {
-//             var index = games.FindIndex(existingGame => existingGame.game_id == game.game_id);
-//             games[index] = game;
-//         }
+        public Game GetGame(int id)
+        {
+            return games.Where(game => game.GameId == id).SingleOrDefault();
+        }
 
-//         public void DeleteGame(int id)
-//         {
-//             var index = games.FindIndex(existingGame => existingGame.game_id == id);
-//             games.RemoveAt(index);
-//         }
+        public void CreateGame(Game game)
+        {
+            games.Add(game);
+        }
 
-//         // photos
-//         public IEnumerable<Photo> GetPhotosForMini(int id)
-//         {
-//             return photos.Where(photo => photo.mini_id == id);
-//         }
+        public void UpdateGame(Game game)
+        {
+            var index = games.FindIndex(existingGame => existingGame.GameId == game.GameId);
+            games[index] = game;
+        }
 
-//         public void CreatePhoto(Photo photo)
-//         {
-//             photos.Add(photo);
-//         }
+        public void DeleteGame(int id)
+        {
+            var index = games.FindIndex(existingGame => existingGame.GameId == id);
+            games.RemoveAt(index);
+        }
 
-//         public void UpdatePhoto(Photo photo)
-//         {
-//             var index = photos.FindIndex(p => p.photo_id == photo.photo_id);
-//             photos[index] = photo;
-//         }
+        // photos
+        public IEnumerable<Photo> GetPhotosForMini(int id)
+        {
+            return photos.Where(photo => photo.Mini.MiniId == id);
+        }
 
-//         public void DeletePhoto(int id)
-//         {
-//             var index = photos.FindIndex(photo => photo.photo_id == id);
-//             photos.RemoveAt(index);
-//         }
-//     }
-// }
+        public void CreatePhoto(Photo photo)
+        {
+            photos.Add(photo);
+        }
+
+        public void UpdatePhoto(Photo photo)
+        {
+            var index = photos.FindIndex(p => p.PhotoId == photo.PhotoId);
+            photos[index] = photo;
+        }
+
+        public void DeletePhoto(int id)
+        {
+            var index = photos.FindIndex(photo => photo.PhotoId == id);
+            photos.RemoveAt(index);
+        }
+
+        public Photo GetPhoto(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public MiniMeta GetMeta(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int FindMetaIdByValues(string style, string scale)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CreateMeta(MiniMeta meta)
+        {
+            throw new NotImplementedException();
+        }
+    }
+}
