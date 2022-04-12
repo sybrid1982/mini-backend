@@ -1,4 +1,5 @@
 using System.Data.SqlClient;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MiniBackend.Models;
 using MiniBackend.Repositories;
@@ -38,15 +39,50 @@ builder.Services.AddCors(options =>
     });
 
 // Connect to db
-builder.Services.AddDbContext<MiniContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("BackendMinisContext")));
+builder.Services.AddDbContext<MiniContext>(options => {
+    if(builder.Configuration["DOTNET_RUNNING_IN_CONTAINER"] != "true") {
+        try { 
+            options.UseSqlServer(builder.Configuration.GetConnectionString("BackendMinisContext"));
+        } catch (Exception ex) {
+            Console.WriteLine("TRIED TO USE DEFAULT CONNECTION STRING FROM SECRETS AND THREW EXCEPTION");
+            Console.WriteLine(ex);
+        }
+    } else {
+        if(builder.Configuration["ASPNETCORE_ENVIRONMENT"] == "DOCKER_DEV") {
+            try {
+                var connection = @"Server=db;Database=master;User=sa;Password=YourStrong@Passw0rd;";
+                options.UseSqlServer(connection);
+            } catch (Exception ex) {
+                Console.WriteLine("TRIED AND FAILED TO CONNECT TO DOCKER CONTAINER SQL SERVER");
+                Console.WriteLine(ex);
+            }
+        } else {
+            try {
+                string connectionString = "Server=" + builder.Configuration["dbServer"] + "Initial Catalog=" + builder.Configuration["dbInitialCatalog"] + "Persist Security Info=False;User ID=" + builder.Configuration["dbUser"] + "Password=" + builder.Configuration["dbPassword"] + "MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";
+                options.UseSqlServer(connectionString);
+            } catch (Exception ex) {
+                Console.WriteLine("TRIED TO BUILD STRING FROM ENV VARIABLES AND THREW EXCEPTION");
+                Console.WriteLine(ex);
+            }
+        }
+    }
+});
+
 builder.Services.AddScoped<IMinisRepository, SqlServerDbMinisRepository>();
 
-// connect to blob
-builder.Services.AddScoped<IUploadService, UploadService>();
-
+// connect to blob outside of DOCKER_DEV
+if(builder.Configuration["ASPNETCORE_ENVIRONMENT"] != "DOCKER_DEV")
+    builder.Services.AddScoped<IUploadService, UploadService>();
+else
+    builder.Services.AddScoped<IUploadService, FakeUploadService>();
 
 var app = builder.Build();
+
+try {
+    DatabaseManagementService.MigrationInitialisation(app);
+} catch {
+    Console.WriteLine("Program.cs: Failed to migrate");
+}
 
 app.UseCors(MyAllowSpecificOrigins);
 
