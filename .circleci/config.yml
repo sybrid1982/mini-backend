@@ -1,0 +1,31 @@
+version: 2.1
+
+# Need to set up the testing pipeline, which means writing some tests and getting them running
+orbs:
+  # node: circleci/node@4.7.0
+  azure-acr: circleci/azure-acr@0.2.0
+# jobs:
+#   test: 
+#     docker:
+#       - image: cimg/node:17.2.0
+#     steps:
+#       - checkout
+#       - node/install-packages:
+#           pkg-manager: npm
+#       - run:
+#           command: npm run test:unit
+#           name: Run tests
+
+workflows:
+  test-then-build-and-push-image:
+    jobs:
+      # - test
+      - azure-acr/build-and-push-image:
+          # requires:
+          #   - test # only deploy if the build_and_test job has completed
+          filters:
+            branches:
+              only: main # only deploy when on main
+          registry-name: sybrid
+          login-server-name: sybrid.azurecr.io
+          repo: mini-backend

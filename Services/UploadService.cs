@@ -16,18 +16,12 @@ namespace UploadFilesServer.Services
         }
         public async Task<string> UploadAsync(Stream fileStream, string fileName, string contentType, string targetContainerName)
         {
-            try {
-                _logger.LogDebug("Setting container to new BlobContainerClient");
+            try
+            {
                 _logger.LogError("BlobConnectionString: " + _storageConnectionString);
+                _logger.LogError("targetContainerName:" + targetContainerName);
                 var container = new BlobContainerClient(_storageConnectionString, targetContainerName);
-                _logger.LogDebug("Attempting to create " + targetContainerName + " if it does not exist");
-                var createResponse = await container.CreateIfNotExistsAsync();
-                _logger.LogDebug("createResponse ClientRequestId " + createResponse.GetRawResponse().ClientRequestId);
-                _logger.LogDebug("createResponse Status " + createResponse.GetRawResponse().Status);
-                _logger.LogDebug("createResponse Content " + createResponse.GetRawResponse().Content);
-
-                if (createResponse != null && createResponse.GetRawResponse().Status == 201)
-                    await container.SetAccessPolicyAsync(PublicAccessType.Blob);
+                await FetchOrBuildContainer(container);
 
                 _logger.LogError("Getting Blob Client for " + fileName);
                 var blob = container.GetBlobClient(fileName);
@@ -37,11 +31,20 @@ namespace UploadFilesServer.Services
                 await blob.UploadAsync(fileStream, new BlobHttpHeaders { ContentType = contentType });
                 return blob.Uri.ToString();
 
-            } catch (Exception ex) {
+            }
+            catch (Exception ex) {
                 _logger.LogError("Failed to connect to blob container");
                 _logger.LogError(ex.Message);
                 throw;
             }
+        }
+
+        private static async Task FetchOrBuildContainer(BlobContainerClient container)
+        {
+            var createResponse = await container.CreateIfNotExistsAsync();
+
+            if (createResponse != null && createResponse.GetRawResponse().Status == 201)
+                await container.SetAccessPolicyAsync(PublicAccessType.Blob);
         }
     }
 }
