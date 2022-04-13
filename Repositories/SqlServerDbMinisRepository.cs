@@ -16,7 +16,7 @@ namespace MiniBackend.Repositories
 
         // Minis
         public Mini GetMini(int id) {
-            return context.Minis.AsNoTracking()
+            return context.Minis
                 .Where(mini => mini.MiniId == id)
                 .Include(m => m.Game)
                 .Include(m => m.Photos)
