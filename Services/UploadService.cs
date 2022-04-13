@@ -17,22 +17,22 @@ namespace UploadFilesServer.Services
         public async Task<string> UploadAsync(Stream fileStream, string fileName, string contentType, string targetContainerName)
         {
             try {
-                _logger.LogInformation("Setting container to new BlobContainerClient");
-                _logger.LogInformation("BlobConnectionString: " + _storageConnectionString);
+                _logger.LogDebug("Setting container to new BlobContainerClient");
+                _logger.LogDebug("BlobConnectionString: " + _storageConnectionString);
                 var container = new BlobContainerClient(_storageConnectionString, targetContainerName);
-                _logger.LogInformation("Attempting to create " + targetContainerName + " if it does not exist");
+                _logger.LogDebug("Attempting to create " + targetContainerName + " if it does not exist");
                 var createResponse = await container.CreateIfNotExistsAsync();
-                _logger.LogInformation("createResponse ClientRequestId " + createResponse.GetRawResponse().ClientRequestId);
-                _logger.LogInformation("createResponse Status " + createResponse.GetRawResponse().Status);
-                _logger.LogInformation("createResponse Content " + createResponse.GetRawResponse().Content);
+                _logger.LogDebug("createResponse ClientRequestId " + createResponse.GetRawResponse().ClientRequestId);
+                _logger.LogDebug("createResponse Status " + createResponse.GetRawResponse().Status);
+                _logger.LogDebug("createResponse Content " + createResponse.GetRawResponse().Content);
 
                 if (createResponse != null && createResponse.GetRawResponse().Status == 201)
                     await container.SetAccessPolicyAsync(PublicAccessType.Blob);
 
-                _logger.LogInformation("Getting Blob Client for " + fileName);
+                _logger.LogDebug("Getting Blob Client for " + fileName);
                 var blob = container.GetBlobClient(fileName);
                 await blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots);
-                _logger.LogInformation("Attempting upload to blob " + blob.BlobContainerName);
+                _logger.LogDebug("Attempting upload to blob " + blob.BlobContainerName);
 
                 await blob.UploadAsync(fileStream, new BlobHttpHeaders { ContentType = contentType });
                 return blob.Uri.ToString();
@@ -40,7 +40,7 @@ namespace UploadFilesServer.Services
             } catch (Exception ex) {
                 _logger.LogError("Failed to connect to blob container");
                 _logger.LogError(ex.Message);
-                throw ex;
+                throw;
             }
         }
     }
