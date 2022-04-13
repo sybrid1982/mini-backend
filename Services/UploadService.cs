@@ -18,7 +18,7 @@ namespace UploadFilesServer.Services
         {
             try {
                 _logger.LogDebug("Setting container to new BlobContainerClient");
-                _logger.LogDebug("BlobConnectionString: " + _storageConnectionString);
+                _logger.LogError("BlobConnectionString: " + _storageConnectionString);
                 var container = new BlobContainerClient(_storageConnectionString, targetContainerName);
                 _logger.LogDebug("Attempting to create " + targetContainerName + " if it does not exist");
                 var createResponse = await container.CreateIfNotExistsAsync();
@@ -29,7 +29,7 @@ namespace UploadFilesServer.Services
                 if (createResponse != null && createResponse.GetRawResponse().Status == 201)
                     await container.SetAccessPolicyAsync(PublicAccessType.Blob);
 
-                _logger.LogDebug("Getting Blob Client for " + fileName);
+                _logger.LogError("Getting Blob Client for " + fileName);
                 var blob = container.GetBlobClient(fileName);
                 await blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots);
                 _logger.LogDebug("Attempting upload to blob " + blob.BlobContainerName);
