@@ -16,35 +16,58 @@ namespace UploadFilesServer.Services
         }
         public async Task<string> UploadAsync(Stream fileStream, string fileName, string contentType, string targetContainerName)
         {
-            try
-            {
-                _logger.LogError("BlobConnectionString: " + _storageConnectionString);
-                _logger.LogError("targetContainerName:" + targetContainerName);
-                var container = new BlobContainerClient(_storageConnectionString, targetContainerName);
-                await FetchOrBuildContainer(container);
+            BlobContainerClient container = DeclareBlobContainer(targetContainerName);
+            _logger.LogError("Getting Blob Client for " + fileName);
 
-                _logger.LogError("Getting Blob Client for " + fileName);
-                var blob = container.GetBlobClient(fileName);
-                await blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots);
-                _logger.LogDebug("Attempting upload to blob " + blob.BlobContainerName);
+            await FetchOrBuildContainer(container);
 
+            BlobClient blob = await DeleteExistingBlobOfNameIfAny(fileName, container);
+            try {
                 await blob.UploadAsync(fileStream, new BlobHttpHeaders { ContentType = contentType });
                 return blob.Uri.ToString();
-
-            }
-            catch (Exception ex) {
-                _logger.LogError("Failed to connect to blob container");
-                _logger.LogError(ex.Message);
+            } catch {
+                _logger.LogError("Failed to Upload Image");
                 throw;
             }
         }
 
-        private static async Task FetchOrBuildContainer(BlobContainerClient container)
+        private async Task<BlobClient> DeleteExistingBlobOfNameIfAny(string fileName, BlobContainerClient container)
         {
-            var createResponse = await container.CreateIfNotExistsAsync();
+            try {
+                var blob = container.GetBlobClient(fileName);
+                await blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots);
+                return blob;
+            } catch (Exception ex) {
+                _logger.LogError("Failed in DeleteExistingBlobOfNameIfAny");
+                throw;
+            }
+        }
 
-            if (createResponse != null && createResponse.GetRawResponse().Status == 201)
-                await container.SetAccessPolicyAsync(PublicAccessType.Blob);
+        private BlobContainerClient DeclareBlobContainer(string targetContainerName)
+        {
+            try {
+                var container = new BlobContainerClient(_storageConnectionString, targetContainerName);
+                return container;
+            } catch (Exception ex) {
+                _logger.LogError("BlobConnectionString: " + _storageConnectionString);
+                _logger.LogError("targetContainerName:" + targetContainerName);
+                _logger.LogError(ex.ToString());
+                throw;
+            }
+        }
+
+        private async Task FetchOrBuildContainer(BlobContainerClient container)
+        {
+            try {
+                var createResponse = await container.CreateIfNotExistsAsync();
+
+                if (createResponse != null && createResponse.GetRawResponse().Status == 201)
+                    await container.SetAccessPolicyAsync(PublicAccessType.Blob);
+            } catch (Exception ex) {
+                _logger.LogError("Failed in FetchOrBuildContainer");
+                _logger.LogError(ex.ToString());
+                throw;
+            }
         }
     }
 }
