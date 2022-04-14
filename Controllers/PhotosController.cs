@@ -3,6 +3,7 @@ using MiniBackend.Repositories;
 using MiniBackend.Models;
 using MiniBackend.DTOs;
 using Microsoft.AspNetCore.Mvc;
+using UploadFilesServer.Services;
 
 namespace MiniBackend.Controllers
 {
@@ -11,21 +12,22 @@ namespace MiniBackend.Controllers
     public class PhotosController : ControllerBase
     {
         private readonly IMinisRepository repository;
+        private readonly IUploadService uploadService;
 
-        public PhotosController(IMinisRepository repository) {
+        public PhotosController(IMinisRepository repository, IUploadService uploadService) {
             this.repository = repository;
+            this.uploadService = uploadService ?? throw new ArgumentNullException(nameof(uploadService));
         }
 
         [HttpGet("{id}")]
-        public PhotoDTO GetPhoto(int id)
+        public ActionResult<PhotoDTO> GetPhoto(int id)
         {
-            // TODO: go back and create this repository function
-            return new PhotoDTO()
-            {
-                MiniId = 0,
-                Id = 0,
-                FileName = "nope"
-            };
+            var existingPhoto = repository.GetPhoto(id);
+            if(existingPhoto is null) {
+                return NotFound();
+            }
+
+            return Ok(existingPhoto.AsDto());
         }
 
         [HttpGet("mini/all/{id}")]
@@ -36,12 +38,17 @@ namespace MiniBackend.Controllers
         }
 
         [HttpDelete("mini/{id}")]
-        public ActionResult DeletePhoto(int id)
+        public async Task<ActionResult> DeletePhoto(int id)
         {
             var existingPhoto = repository.GetPhoto(id);
             if(existingPhoto is null) {
                 return NotFound();
             }
+
+            string[] pathParts = existingPhoto.Filename.Split('/');
+            string fileName = pathParts[pathParts.Length - 1];
+
+            await uploadService.DeleteBlobFileAsync(fileName, "mini-photos");
 
             repository.DeletePhoto(id);
 

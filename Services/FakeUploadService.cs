@@ -11,6 +11,12 @@ namespace UploadFilesServer.Services
             _storageConnectionString = configuration.GetConnectionString("BlobConnectionString");
             _logger = logger;
         }
+
+        public Task<string> DeleteBlobFileAsync(string fileName, string targetContainerName)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<string> UploadAsync(Stream fileStream, string fileName, string contentType, string targetContainerName)
         {
             _logger.LogInformation("storageConnectionString is: " + _storageConnectionString);

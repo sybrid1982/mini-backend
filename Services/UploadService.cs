@@ -31,6 +31,16 @@ namespace UploadFilesServer.Services
             }
         }
 
+        public async Task<string> DeleteBlobFileAsync(string fileName, string targetContainerName) {
+            BlobContainerClient container = DeclareBlobContainer(targetContainerName);
+
+            await FetchOrBuildContainer(container);
+
+            await DeleteExistingBlobOfNameIfAny(fileName, container);
+
+            return "Ok";
+        }
+
         private async Task<BlobClient> DeleteExistingBlobOfNameIfAny(string fileName, BlobContainerClient container)
         {
             try {

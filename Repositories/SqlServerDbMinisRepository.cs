@@ -89,7 +89,7 @@ namespace MiniBackend.Repositories
 
         public Photo GetPhoto(int id)
         {
-            return context.Photos.Where(photo => photo.PhotoId == id).SingleOrDefault();
+            return context.Photos.Where(photo => photo.PhotoId == id).Include(p => p.Mini).SingleOrDefault();
         }
 
         public void CreatePhoto(Photo photo)
