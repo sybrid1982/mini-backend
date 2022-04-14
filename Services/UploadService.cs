@@ -17,11 +17,11 @@ namespace UploadFilesServer.Services
         public async Task<string> UploadAsync(Stream fileStream, string fileName, string contentType, string targetContainerName)
         {
             BlobContainerClient container = DeclareBlobContainer(targetContainerName);
-            _logger.LogError("Getting Blob Client for " + fileName);
 
             await FetchOrBuildContainer(container);
 
             BlobClient blob = await DeleteExistingBlobOfNameIfAny(fileName, container);
+            
             try {
                 await blob.UploadAsync(fileStream, new BlobHttpHeaders { ContentType = contentType });
                 return blob.Uri.ToString();
